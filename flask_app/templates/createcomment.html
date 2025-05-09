@@ -24,15 +24,28 @@
   </div>
 
   <form action="/comment/{{moment.id}}" method="POST">
-    <label for="content">Comment:</label>
-    <textarea id="content" name="content" required></textarea>
-
-    <div class="checkbox-container">
-        <input type="checkbox" id="public" name="public" value="true" checked>
-        <label for="public">Post publicly</label>
+    {{ form.csrf_token }}
+    
+    <div class="form-group">
+      {{ form.content.label }}
+      {{ form.content(required=true) }}
+      
+      {% if form.content.errors %}
+        <div class="error">
+          {% for error in form.content.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
 
-    <input type="submit" value="Post Comment">
+    <div class="checkbox-container">
+      {{ form.public(checked=true) }}
+      {{ form.public.label }}
+    </div>
+
+    {{ form.submit }}
+    
     <div class="comment-results">
     {% for comment in comments %}
       <div class="comment-item">
@@ -45,8 +58,6 @@
       </div>
     {% endfor %}  
     </div>
-
-
   </form>
 
 </body>

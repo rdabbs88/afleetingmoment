@@ -36,7 +36,6 @@ class Comment(db.Document):
         'indexes': ['-created_at']
     }
     
-    
     def get_id(self):
         return str(self.id)
 

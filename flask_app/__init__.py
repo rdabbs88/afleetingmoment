@@ -21,7 +21,7 @@ import os
 MONGO_HOST = os.getenv("MONGO_HOST")
 SECRET_KEY = os.getenv("SECRET_KEY")
 GOOGLE_KEY = os.getenv("GOOGLE_API")
-SECRET_KEY = os.getenv("SECRET_KEY")
+
 
 
 # import google api library

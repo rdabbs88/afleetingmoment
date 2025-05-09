@@ -1,11 +1,12 @@
 import base64, io
 from io import BytesIO
 from flask import Blueprint, render_template, url_for, redirect, request, flash
-from mongoengine.queryset.visitor import Q
 from flask_login import current_user
 from .. import google_client, db
 from datetime import datetime
 from ..models import Moment, Comment
+from ..forms import MomentForm, CommentForm, SearchForm
+
 moments = Blueprint("moments", __name__)
 
 @moments.route("/")
@@ -22,24 +23,21 @@ def index():
             'addressed': moment.addressed_to,
             'lat': moment.location[0],
             'lng': moment.location[1],
-            'time': moment.created_at.strftime("%Y-%m-%d %H:%M")
+            'time': moment.created_at.strftime("%Y-%m-%d %H:%M UTC")
         })
     
     return render_template("index.html", key=google_client.getKey(), moments=formatted_moments)
 
 @moments.route("/createmoment", methods=["POST", "GET"])
 def create_moment():
-    if request.method == "GET":
-        return render_template("createmoment.html")
+    form = MomentForm()
     
-    if request.method == "POST":
-        content = request.form.get('description')
-        location_text = request.form.get('location')
-        
-        # Validation
-        if not content:
-            flash('Content cannot be empty', 'danger')
-            return redirect(url_for('moments.create_moment'))
+    if request.method == "GET":
+        return render_template("createmoment.html", form=form)
+    
+    if form.validate_on_submit():
+        content = form.description.data
+        location_text = form.location.data
         
         # Get coordinates using Google Geocode API
         try:
@@ -47,21 +45,18 @@ def create_moment():
             lat = geocode_result['lat']
             lng = geocode_result['lng']
         except Exception as e:
-            # If geocoding fails, use default coordinates
             print(f"Geocoding error: {e}")
             lat = float(request.form.get('latitude', 0.0))
             lng = float(request.form.get('longitude', 0.0))
         
-        # Check if the post should be public
-        is_public = request.form.get('public') == 'true'
+        is_public = form.public.data
         
-        # Set username based on privacy preference
         if is_public:
-            temp_username = 'Anonymous'  # Default anonymous username for public posts
+            temp_username = 'Anonymous'  
         else:
-            temp_username = ''  # Empty string for private posts
+            temp_username = '' 
             
-        addressed_to = request.form.get('addressed_to', '')
+        addressed_to = form.addressed_to.data
         
         # Create new moment
         new_moment = Moment(
@@ -76,46 +71,58 @@ def create_moment():
         flash('Moment created successfully!', 'success')
         return redirect(url_for('moments.index'))
     
+    # If form validation fails
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(f"{field}: {error}", 'danger')
+    return render_template("createmoment.html", form=form)
+    
 @moments.route("/moment/<id>", methods=["GET"])
 def create_comment(id):
+    form = CommentForm()
     try:
         moment = Moment.objects.get(id=id)
         comments = Comment.objects(moment_id=id).order_by('-created_at')
-        return render_template("createcomment.html", moment=moment, comments=comments)
+        return render_template("createcomment.html", moment=moment, comments=comments, form=form)
     except:
         flash('Moment not found', 'danger')
         return redirect(url_for('moments.index'))
 
 @moments.route("/comment/<id>", methods=["POST"])
 def post_comment(id):
+    form = CommentForm()
     try:
         moment = Moment.objects.get(id=id)
-        content = request.form.get('content')
         
-        if not content:
-            flash('Comment cannot be empty', 'danger')
+        if form.validate_on_submit():
+            content = form.content.data
+            is_public = form.public.data
+            
+            # Set username based on privacy preference
+            if is_public:
+                temp_username = 'Anonymous'
+            else:
+                temp_username = ''
+            
+            # Create new comment
+            new_comment = Comment(
+                content=content,
+                username=temp_username,
+                moment_id=id,
+                created_at=datetime.now()
+            )
+            new_comment.save()
+            
+            flash('Comment added successfully!', 'success')
             return redirect(url_for('moments.create_comment', id=id))
         
-        # Check if the user wants to post publicly
-        is_public = request.form.get('public') == 'true'
+        # If form validation fails
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{field}: {error}", 'danger')
         
-        # Set username based on privacy preference
-        if is_public:
-            temp_username = 'Anonymous'  # Default anonymous username for public posts
-        else:
-            temp_username = ''  # Empty string for private posts
-        
-        # Create new comment
-        new_comment = Comment(
-            content=content,
-            username=temp_username,
-            moment_id=id,
-            created_at=datetime.now()
-        )
-        new_comment.save()
-        
-        flash('Comment added successfully!', 'success')
-        return redirect(url_for('moments.create_comment', id=id))
+        comments = Comment.objects(moment_id=id).order_by('-created_at')
+        return render_template("createcomment.html", moment=moment, comments=comments, form=form)
     except:
         flash('Moment not found', 'danger')
         return redirect(url_for('moments.index'))
@@ -126,10 +133,12 @@ def search():
     if not query:
         return redirect(url_for('moments.index'))
     
+    # Search for moments containing the query
+    # Search for moments containing the query in username or content
+    from mongoengine.queryset.visitor import Q
     db_moments = Moment.objects(Q(content__icontains=query) | 
                                 Q(username__icontains=query) | 
-                                Q(addressed_to__icontains=query) | 
-                                Q(id__icontains=query))
+                                Q(addressed_to__icontains=query))
     db_moments = db_moments.order_by('-created_at')
     
     # Format moments for template
@@ -142,7 +151,7 @@ def search():
             'addressed': moment.addressed_to,
             'lat': moment.location[0],
             'lng': moment.location[1],
-            'time': moment.created_at.strftime("%Y-%m-%d %H:%M")
+            'time': moment.created_at.strftime("%Y-%m-%d %H:%M UTC")
         })
     
     return render_template("index.html", key=google_client.getKey(), moments=formatted_moments)

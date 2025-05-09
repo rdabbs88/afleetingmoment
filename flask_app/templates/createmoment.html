@@ -11,21 +11,45 @@
   <h1>Fleeting Moments</h1>
 
   <form action="/createmoment" method="POST">
-    <label for="description">Description:</label>
-    <textarea id="description" name="description" required></textarea>
-
-    <label for="location">Location:</label>
-    <input type="text" id="location" name="location" required>
+    {{ form.csrf_token }}
     
-    <div class="checkbox-container">
-        <input type="checkbox" id="public" name="public" value="true" checked>
-        <label for="public">Post publicly</label>
+    <div class="form-group">
+      {{ form.description.label }}
+      {{ form.description(required=true) }}
+      
+      {% if form.description.errors %}
+        <div class="error">
+          {% for error in form.description.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
 
-    <label for="addressed_to">Addressed To:</label>
-    <input type="text" id="addressed_to" name="addressed_to" placeholder="Who is this addressed to?">
+    <div class="form-group">
+      {{ form.location.label }}
+      {{ form.location(required=true) }}
+      
+      {% if form.location.errors %}
+        <div class="error">
+          {% for error in form.location.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    
+    <div class="checkbox-container">
+      {{ form.public(checked=true) }}
+      {{ form.public.label }}
+    </div>
 
-    <input type="submit" value="Create Post">
+    <div class="form-group">
+      {{ form.addressed_to.label }}
+      {{ form.addressed_to(placeholder="Who is this addressed to?") }}
+    </div>
+
+    {{ form.submit(value="Create Post") }}
   </form>
 
 </body>
