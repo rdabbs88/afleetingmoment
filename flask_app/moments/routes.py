@@ -112,10 +112,13 @@ def post_comment(id):
             is_public = form.public.data
             
             # Set username based on privacy preference
-            if is_public:
-                temp_username = 'Anonymous'
+            if current_user.is_authenticated:
+                if is_public:
+                    temp_username = current_user.username
+                else:
+                    temp_username = 'Anonymous'  
             else:
-                temp_username = ''
+                temp_username = 'Anonymous' 
             
             # Create new comment
             new_comment = Comment(
