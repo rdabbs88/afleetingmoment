@@ -41,6 +41,7 @@ def custom_404(e):
 
 def create_app(test_config=None):
     app = Flask(__name__)
+
     app.config.from_pyfile("config.py", silent=False)
     if test_config is not None:
         app.config.update(test_config)
@@ -55,7 +56,7 @@ def create_app(test_config=None):
 
     db.init_app(app)
     # uncomment when doing login stuff
-    #login_manager.init_app(app)
+    login_manager.init_app(app)
     bcrypt.init_app(app)
 
     app.register_blueprint(users)
@@ -63,6 +64,6 @@ def create_app(test_config=None):
     app.register_error_handler(404, custom_404)
 
     # uncomment when doing login stuff
-    # login_manager.login_view = "users.login"
+    login_manager.login_view = "users.login"
 
     return app

@@ -1,0 +1,63 @@
+{% extends "header.html" %}
+{% block content %}
+<div class="container mx-auto w-full md:w-2/3 lg:w-1/3">
+    {% if image %}
+        {# Profile picture #}
+        <img class="profile-img" src="data:image/png;base64,{{image}}" alt="image">
+    {% endif %}
+
+    {# TODO: Greeting (must include the current user's username) #}
+    {# % if current_user.is_authenticated % #}
+    <h1>Welcome, {{ current_user.username }}!</h1>
+    {# % endif % #}
+
+</div>
+
+<div class="container mx-auto w-full md:w-2/3 lg:w-1/3">
+    <h3 class="text-xl">
+        Update Username
+    </h3>
+    <form class="review-form" method="POST" action="">
+        {{ update_username_form.csrf_token }}
+        <div class="form-group">
+            {{ update_username_form.username.label }}
+            {{ update_username_form.username(class="form-content") }}
+            {% if update_username_form.username.errors %}
+            <div class="error" role="alert">
+                {% for error in update_username_form.username.errors %}
+                <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {{ update_username_form.submit_username(class="review-button") }}
+    </form>
+</div>
+
+<div class="container mx-auto w-full md:w-2/3 lg:w-1/3">
+    <h3 class="text-xl">
+        Update Profile Picture
+    </h3>
+    <form class="review-form" method="POST" action="" enctype="multipart/form-data">
+        {{ update_profile_pic_form.csrf_token }}
+        <div class="form-group">
+            {{ update_profile_pic_form.picture.label }}
+            {{ update_profile_pic_form.picture(class="form-content") }}
+            {% if update_profile_pic_form.picture.errors %}
+            <div class="error" role="alert">
+                {% for error in update_profile_pic_form.picture.errors %}
+                <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {{ update_profile_pic_form.submit_picture(class="review-button") }}
+    </form>
+</div>
+
+{# Display all of a user's posts #}
+<div class="flex justify-center">
+    <a href="{{ url_for('moments.user_detail', username=current_user.username) }}">All Moments</a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block header %}
+
+<nav class="navbar flex w-full justify-between z-40">
+    <a class="m-5 navlink" href="{{ url_for('moments.index') }}">Home</a>
+
+    {% if current_user.is_authenticated %}
+    <div class="flex">
+        <a class="my-5 mr-5 ml-0 navlink" href="{{ url_for('users.account') }}">Account</a>
+        <a class="my-5 mr-5 ml-0 navlink !bg-red-400/20 hover:!bg-red-500/50 !text-red-400 hover:!text-red-300" href="{{ url_for('users.logout') }}">Logout</a>
+    </div>
+    {% else %}
+    <div class="flex">
+        <a class="my-5 mr-5 ml-0 navlink" href="{{ url_for('users.login') }}">Login</a>
+        <a class="my-5 mr-5 ml-0 navlink" href="{{ url_for('users.register') }}">Register</a>
+    </div>
+    {% endif %}
+
+    {#
+    <div class="flex">
+        <a class="my-5 mr-5 ml-0 navlink" href="{{ url_for('users.login') }}">Login</a>
+        <a class="my-5 mr-5 ml-0 navlink" href="{{ url_for('users.register') }}">Register</a>
+    </div>
+    #}
+
+</nav>
+
+{% block content %}{% endblock %}{% endblock %}

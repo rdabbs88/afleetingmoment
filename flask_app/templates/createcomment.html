@@ -44,7 +44,7 @@
       {{ form.public.label }}
     </div>
 
-    {{ form.submit }}
+    {{ form.submit(class="submit-button", value="Post Comment") }}
     
     <div class="comment-results">
     {% for comment in comments %}

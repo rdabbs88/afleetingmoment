@@ -1,0 +1,37 @@
+{% extends "header.html" %} {% block content %}
+{% if error %}
+    <b class="text-red-400" role="alert">
+        {{ error }}
+    </b>
+{% endif %}
+<div class="container mx-auto w-full md:w-2/3 lg:w-1/3">
+    {# User's Profile Picture #}
+    <img class="profile-img" src="data:image/png;base64,{{image}}" alt="image">
+    {# TODO: Indicate which user's public moments we're looking at #}
+    <h1 class="moments-title">{{ current_user.username }}'s Moments</h1>
+
+</div>
+<div class="container mx-auto w-full md:w-2/3 lg:w-1/3">
+    {# TODO: Show all public moments made by the user #}
+    <h1 class="moments-title"> Number of Moments:
+        <strong class="moments-count"> {{ moments | length }}</strong>
+    </h1>
+
+    <div class="moments-results">
+
+        {% for moment in moments %}
+          <div class="result-item" onclick="window.location.href='/moment/{{moment.id}}'">
+              
+            <p>Id: {{moment.id}}</p>
+            {% if moment.addressed and moment.addressed|length > 0 %}
+              <p>Addressed: {{moment.addressed}}</p>
+            {% endif %}
+            <p>{{moment.username if moment.username else ''}}</p>
+            <p>{{moment.content}}</p>
+            <p>{{moment.time}}</p>        
+          </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

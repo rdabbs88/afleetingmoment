@@ -1,49 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fleeting Moments</title>
-  <script async src="https://maps.googleapis.com/maps/api/js?key={{key}}&callback=console.debug&libraries=maps,marker&v=beta">
-  </script>
-  <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}"/>
-</head>
-<body>
-  <gmp-map center="40.12150192260742,-100.45039367675781" zoom="4" map-id="DEMO_MAP_ID">
-    {% for moment in moments %}
-      {% if moment.lat and moment.lng %}
-        <gmp-advanced-marker position="{{moment.lat}},{{moment.lng}}" title="{{moment.content}}"></gmp-advanced-marker>
-      {% endif %}
-    {% endfor %}
-  </gmp-map>
+{% extends "header.html" %}
 
-  <form class="search-bar" action="/search" method="GET">
-    <input class="search-input" type="text" name="search" placeholder="Search for a post">
-    <input class="submit-button" type="submit" value="Search">
-  </form>
+{% block head_scripts %}
+<script async src="https://maps.googleapis.com/maps/api/js?key={{key}}&callback=console.debug&libraries=maps,marker&v=beta">
+</script>
+{% endblock %}
 
-  <div class="search-results">
+{% block content %}
 
-    {% for moment in moments %}
-      <div class="result-item" onclick="window.location.href='/moment/{{moment.id}}'">
+<gmp-map center="40.12150192260742,-100.45039367675781" zoom="4" map-id="DEMO_MAP_ID">
+  {% for moment in moments %}
+    {% if moment.lat and moment.lng %}
+      <gmp-advanced-marker position="{{moment.lat}},{{moment.lng}}" title="{{moment.content}}"></gmp-advanced-marker>
+    {% endif %}
+  {% endfor %}
+</gmp-map>
+
+<form class="search-bar" action="/search" method="GET">
+  <input class="search-input" type="text" name="search_query" placeholder="Search for a post">
+  <input class="submit-button" type="submit" value="Search">
+</form>
+
+<div class="search-results">
+
+  {% for moment in moments %}
+    <div class="result-item" onclick="window.location.href='/moment/{{moment.id}}'">
         
-        <p>Id: {{moment.id}}</p>
-        {% if moment.addressed and moment.addressed|length > 0 %}
-          <p>Addressed: {{moment.addressed}}</p>
-        {% endif %}
-        <p>{{moment.username if moment.username else ''}}</p>
-        <p>{{moment.content}}</p>
-        <p>{{moment.time}}</p>        
-      </div>
-    {% endfor %}
-  </div>
+      <p>Id: {{moment.id}}</p>
+      {% if moment.addressed and moment.addressed|length > 0 %}
+        <p>Addressed: {{moment.addressed}}</p>
+      {% endif %}
+      <p>{{moment.username if moment.username else ''}}</p>
+      <p>{{moment.content}}</p>
+      <p>{{moment.time}}</p>        
+    </div>
+  {% endfor %}
+</div>
 
-  <div class="post-form" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-    <form action="/createmoment" method="GET">
-      <input class="submit-button" type="submit" value="Create a post!" style="box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-weight: bold;">
-    </form>
-  </div>
+<div class="post-form" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+  <form action="/createmoment" method="GET">
+    <input class="submit-button" type="submit" value="Create a post!" style="box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-weight: bold;">
+  </form>
+</div>
 
-</body>
-</html>
+{% endblock %}
 

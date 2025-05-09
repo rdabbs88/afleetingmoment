@@ -3,6 +3,11 @@ from . import db, login_manager
 
 from datetime import datetime
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.objects(id=user_id).first()
+    #return User.objects.get(id=user_id).first()
+
 class User(db.Document, UserMixin):
     username = db.StringField(unique=True, required=True, min_length=1, max_length=40)
     email = db.EmailField(unique=True, required=True)
@@ -38,8 +43,3 @@ class Comment(db.Document):
     
     def get_id(self):
         return str(self.id)
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.objects.get(id=user_id).first()
-

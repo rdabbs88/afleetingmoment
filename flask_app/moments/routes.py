@@ -2,12 +2,22 @@ import base64, io
 from io import BytesIO
 from flask import Blueprint, render_template, url_for, redirect, request, flash
 from flask_login import current_user
+
 from .. import google_client, db
 from datetime import datetime
-from ..models import Moment, Comment
+from ..models import Moment, Comment, User
 from ..forms import MomentForm, CommentForm, SearchForm
 
 moments = Blueprint("moments", __name__)
+
+""" ************ Helper for pictures uses username to get their profile picture************ """
+def get_b64_img(username):
+    user = User.objects(username=username).first()
+    bytes_im = io.BytesIO(user.profile_pic.read())
+    image = base64.b64encode(bytes_im.getvalue()).decode()
+    return image
+
+""" ************ View functions ************ """
 
 @moments.route("/")
 def index():
@@ -51,10 +61,13 @@ def create_moment():
         
         is_public = form.public.data
         
-        if is_public:
-            temp_username = 'Anonymous'  
+        if current_user.is_authenticated:
+            if is_public:
+                temp_username = current_user.username
+            else:
+                temp_username = 'Anonymous'  
         else:
-            temp_username = '' 
+            temp_username = 'Anonymous' 
             
         addressed_to = form.addressed_to.data
         
@@ -126,10 +139,13 @@ def post_comment(id):
     except:
         flash('Moment not found', 'danger')
         return redirect(url_for('moments.index'))
-    
+
+
 @moments.route("/search", methods=["GET"])
 def search():
-    query = request.args.get('search')
+
+    query = request.args.get('search_query')
+
     if not query:
         return redirect(url_for('moments.index'))
     
@@ -155,3 +171,34 @@ def search():
         })
     
     return render_template("index.html", key=google_client.getKey(), moments=formatted_moments)
+
+
+@moments.route("/user/<username>")
+def user_detail(username):
+    #uncomment to get review image
+    #user = find first match in db
+    user = User.objects(username=username).first()
+
+    # if the user does not exist
+    if not user:
+        return render_template("user_detail.html", error="User does not exist", moments=[], image=None)
+
+    # otherwise the user exists
+    else:
+        user_db_moments = Moment.objects(username=username).order_by('created_at')
+        img = get_b64_img(user.username)
+
+        # Format moments for template
+        formatted_moments = []
+        for moment in user_db_moments:
+            formatted_moments.append({
+                'id': str(moment.id),
+                'content': moment.content,
+                'username': moment.username,
+                'addressed': moment.addressed_to,
+                'lat': moment.location[0],
+                'lng': moment.location[1],
+                'time': moment.created_at.strftime("%Y-%m-%d %H:%M UTC")
+            })
+
+        return render_template("user_detail.html", moments=formatted_moments, username=username, image=img, error=None)
