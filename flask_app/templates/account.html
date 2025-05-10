@@ -56,8 +56,8 @@
 </div>
 
 {# Display all of a user's posts #}
-<div class="flex justify-center">
-    <a href="{{ url_for('moments.user_detail', username=current_user.username) }}">All Moments</a>
+<div class="post-form" style="margin-top: 20px;">
+    <a class="link-button" href="{{ url_for('moments.user_detail', username=current_user.username) }}">All Moments</a>
 </div>
 
 {% endblock %}
